@@ -5,7 +5,10 @@ BIN_PATH:=/home/isucon/torb/webapp/go/torb
 SERVICE_NAME:=torb.go
 APP_LOCAL_URL:=http://localhost:8080
 
+NGX_SERVICE=nginx
 NGX_LOG:=/var/log/nginx/access.log
+
+MYSQL_SERVICE=mysql
 MYSQL_LOG:=/var/log/mariadb/mariadb.log
 
 all: build
@@ -27,7 +30,7 @@ build:
 
 .PHONY: restart
 restart:
-	sudo systemctl restart torb.go.service
+	sudo systemctl restart $(SERVICE_NAME)
 
 .PHONY: pprof
 pprof:
@@ -37,17 +40,13 @@ pprof:
 
 .PHONY: kataru
 kataru:
-	sudo cat /var/log/nginx/access.log | kataribe -f /etc/kataribe.toml | slackcat
+	sudo cat $(NGX_LOG) | kataribe -f /etc/kataribe.toml | slackcat
 
 .PHONY: before
 before:
 	$(eval when := $(shell date "+%s"))
 	mkdir -p ~/logs/$(when)
-	@if [ -f $(NGX_LOG) ]; then \
-		sudo mv -f $(NGX_LOG) ~/logs/$(when)/ ; \
-	fi
-	@if [ -f $(MYSQL_LOG) ]; then \
-		sudo mv -f $(MYSQL_LOG) ~/logs/$(when)/ ; \
-	fi
-	sudo systemctl restart nginx
-	sudo systemctl restart mysql
+	sudo mv -f $(NGX_LOG) ~/logs/$(when)/
+	sudo mv -f $(MYSQL_LOG) ~/logs/$(when)/
+	sudo systemctl restart $(NGX_SERVICE)
+	sudo systemctl restart $(MYSQL_SERVICE)
