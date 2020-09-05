@@ -2,6 +2,10 @@
 
 package main
 
+import (
+	"github.com/labstack/echo"
+)
+
 func echoLogging(e *echo.Echo) {
 	return
 }
