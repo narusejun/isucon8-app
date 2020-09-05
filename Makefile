@@ -32,8 +32,8 @@ build:
 config-files:
 	sudo rsync -r $(HOSTNAME)/ /
 
-.PHONY: restart
-restart:
+.PHONY: start
+start:
 	sh $(HOSTNAME)/deploy.sh
 
 .PHONY: pprof
