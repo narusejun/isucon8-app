@@ -21,11 +21,21 @@ clean:
 .PHONY: deploy
 deploy: build config-files start
 
+.PHONY: deploy-nolog
+deploy-nolog: build-nolog config-files start
+
 .PHONY: build
 build:
 	git pull&& \
 	cd $(BUILD_DIR); \
 	GOPATH=`pwd`:`pwd`/vendor go build -v torb
+	# TODO
+
+.PHONY: build-nolog
+build-nolog:
+	git pull&& \
+	cd $(BUILD_DIR); \
+	GOPATH=`pwd`:`pwd`/vendor go build -tags release -v torb
 	# TODO
 
 .PHONY: config-files
