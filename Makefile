@@ -19,7 +19,7 @@ clean:
 	rm -rf ${BIN_NAME}
 
 .PHONY: deploy
-deploy: build restart
+deploy: build config-files restart
 
 .PHONY: build
 build:
@@ -28,9 +28,16 @@ build:
 	GOPATH=`pwd`:`pwd`/vendor go build -v torb
 	# TODO
 
+.PHONY: config-files
+middleware:
+	sudo rsync -r $(HOSTNAME)/ /
+
 .PHONY: restart
 restart:
+	sudo systemctl daemon-reload
 	sudo systemctl restart $(SERVICE_NAME)
+	sudo systemctl restart $(NGX_LOG)
+	sudo systemctl restart $(MYSQL_LOG)
 
 .PHONY: pprof
 pprof:
