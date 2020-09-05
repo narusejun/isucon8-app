@@ -29,7 +29,7 @@ build:
 	# TODO
 
 .PHONY: config-files
-middleware:
+config-files:
 	sudo rsync -r $(HOSTNAME)/ /
 
 .PHONY: restart
