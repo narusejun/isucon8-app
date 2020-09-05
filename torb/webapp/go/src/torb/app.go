@@ -225,7 +225,7 @@ func getEvents(all bool) ([]*Event, error) {
 
 // Sheetテーブルの読み込み
 
-var sheets = map[string]map[int]int{
+var sheets = map[string][]int{
 	"S": {},
 	"A": {},
 	"B": {},
@@ -253,7 +253,7 @@ func prepareSheets() error {
 		if err := rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
 			return err
 		}
-		sheets[sheet.Rank][int(sheet.ID)] = int(sheet.Num)
+		sheets[sheet.Rank] = append(sheets[sheet.Rank], int(sheet.ID))
 		sheetIdToSheet[int(sheet.ID)] = sheet
 	}
 
