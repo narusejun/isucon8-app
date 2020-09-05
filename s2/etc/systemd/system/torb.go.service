@@ -1,0 +1,23 @@
+[Unit]
+Description = isucon8 qualifier webapp in go
+After = mariadb.service
+
+[Service]
+WorkingDirectory=/home/isucon/torb/webapp/go
+EnvironmentFile=/opt/env.sh
+
+ExecStart = /home/isucon/torb/webapp/go/torb
+
+Restart   = always
+Type      = simple
+User      = isucon
+Group     = isucon
+
+LimitNOFILE=65536
+LimitNPROC=infinity
+
+RestartSec=2
+TimeoutSec=600
+
+[Install]
+WantedBy = multi-user.target
