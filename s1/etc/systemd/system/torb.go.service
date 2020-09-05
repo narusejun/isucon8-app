@@ -4,7 +4,7 @@ After = mariadb.service
 
 [Service]
 WorkingDirectory=/home/isucon/torb/webapp/go
-EnvironmentFile=/home/isucon/torb/webapp/env.sh
+EnvironmentFile=/opt/env.sh
 
 ExecStart = /home/isucon/torb/webapp/go/torb
 
