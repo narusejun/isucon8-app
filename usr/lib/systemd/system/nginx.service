@@ -16,6 +16,8 @@ KillSignal=SIGQUIT
 TimeoutStopSec=5
 KillMode=process
 PrivateTmp=true
+LimitNOFILE=65536
+LimitNPROC=infinity
 
 [Install]
 WantedBy=multi-user.target
