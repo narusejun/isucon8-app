@@ -12,5 +12,8 @@ Type      = simple
 User      = isucon
 Group     = isucon
 
+LimitNOFILE=65536
+LimitNPROC=infinity
+
 [Install]
 WantedBy = multi-user.target
