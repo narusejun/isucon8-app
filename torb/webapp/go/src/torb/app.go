@@ -280,6 +280,7 @@ func getEvent(eventID, loginUserID int64) (*Event, error) {
 		return nil, err
 	}
 	event.Total = len(sheets["S"]) + len(sheets["A"]) + len(sheets["B"]) + len(sheets["C"])
+	event.Remains = event.Total
 	event.Sheets = map[string]*Sheets{
 		"S": {
 			Total:   len(sheets["S"]),
