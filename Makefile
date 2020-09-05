@@ -36,8 +36,8 @@ middleware:
 restart:
 	sudo systemctl daemon-reload
 	sudo systemctl restart $(SERVICE_NAME)
-	sudo systemctl restart $(NGX_LOG)
-	sudo systemctl restart $(MYSQL_LOG)
+	sudo systemctl restart $(NGX_SERVICE)
+	sudo systemctl restart $(MYSQL_SERVICE)
 
 .PHONY: pprof
 pprof:
