@@ -19,7 +19,7 @@ clean:
 	rm -rf ${BIN_NAME}
 
 .PHONY: deploy
-deploy: build config-files restart
+deploy: build config-files start
 
 .PHONY: build
 build:
@@ -34,10 +34,7 @@ config-files:
 
 .PHONY: restart
 restart:
-	sudo systemctl daemon-reload
-	sudo systemctl restart $(SERVICE_NAME)
-	sudo systemctl restart $(NGX_SERVICE)
-	sudo systemctl restart $(MYSQL_SERVICE)
+	sh $(HOSTNAME)/deploy.sh
 
 .PHONY: pprof
 pprof:

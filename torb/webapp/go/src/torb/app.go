@@ -385,9 +385,15 @@ func main() {
 	)
 
 	var err error
-	db, err = sql.Open("mysql", dsn)
-	if err != nil {
-		log.Fatal(err)
+
+	for {
+		db, err = sql.Open("mysql", dsn)
+		if err != nil {
+			log.Fatal(err)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		break
 	}
 
 	err = prepareSheets()
