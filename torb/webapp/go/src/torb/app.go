@@ -9,8 +9,6 @@ import (
 	"html/template"
 	"io"
 	"log"
-	"net/http"
-	"net/http/pprof"
 	"os"
 	"os/exec"
 	"sort"
@@ -22,7 +20,6 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/middleware"
 )
 
 type User struct {
