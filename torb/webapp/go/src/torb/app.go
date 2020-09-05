@@ -389,7 +389,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err := prepareSheets()
+	err = prepareSheets()
 	if err != nil {
 		log.Fatal(err)
 	}
