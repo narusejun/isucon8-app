@@ -262,7 +262,7 @@ func prepareSheets() error {
 
 func makeSheetDetails(rank string, reservations map[int]Reservation, loginUserID int64) []*Sheet {
 	var arr []*Sheet
-	for id := range sheets[rank] {
+	for _, id := range sheets[rank] {
 		s := sheetIdToSheet[id]
 		if r, ok := reservations[int(s.ID)]; ok {
 			s.Mine = r.UserID == loginUserID
