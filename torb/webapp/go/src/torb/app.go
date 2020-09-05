@@ -412,7 +412,7 @@ func main() {
 		templates: template.Must(template.New("").Delims("[[", "]]").Funcs(funcs).ParseGlob("views/*.tmpl")),
 	}
 	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{Output: os.Stderr}))
+	echoLogging(e)
 	e.Static("/", "public")
 	e.GET("/", getIndex, fillinUser)
 	e.GET("/initialize", getInitialize)
@@ -434,14 +434,7 @@ func main() {
 	e.GET("/admin/api/reports/events/:id/sales", getAdminApiReportsEventsIDSales, adminLoginRequired)
 	e.GET("/admin/api/reports/sales", getAdminApiReportsSales, adminLoginRequired)
 
-	{
-		pprofGroup := e.Group("/debug/pprof")
-		pprofGroup.Any("/cmdline", echo.WrapHandler(http.HandlerFunc(pprof.Cmdline)))
-		pprofGroup.Any("/profile", echo.WrapHandler(http.HandlerFunc(pprof.Profile)))
-		pprofGroup.Any("/symbol", echo.WrapHandler(http.HandlerFunc(pprof.Symbol)))
-		pprofGroup.Any("/trace", echo.WrapHandler(http.HandlerFunc(pprof.Trace)))
-		pprofGroup.Any("/*", echo.WrapHandler(http.HandlerFunc(pprof.Index)))
-	}
+	echoPProf(e)
 
 	e.Start(":8080")
 }
