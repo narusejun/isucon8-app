@@ -8,7 +8,7 @@ APP_LOCAL_URL:=http://localhost:8080
 NGX_SERVICE=nginx
 NGX_LOG:=/var/log/nginx/access.log
 
-MYSQL_SERVICE=mysql
+MYSQL_SERVICE=mariadb
 MYSQL_LOG:=/var/log/mariadb/mariadb.log
 
 all: build
