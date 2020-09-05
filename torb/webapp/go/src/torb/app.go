@@ -223,48 +223,113 @@ func getEvents(all bool) ([]*Event, error) {
 	return events, nil
 }
 
-func getEvent(eventID, loginUserID int64) (*Event, error) {
-	var event Event
-	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
-		return nil, err
-	}
-	event.Sheets = map[string]*Sheets{
-		"S": &Sheets{},
-		"A": &Sheets{},
-		"B": &Sheets{},
-		"C": &Sheets{},
-	}
+// Sheetテーブルの読み込み
 
+var sheets = map[string]map[int]int{
+	"S": {},
+	"A": {},
+	"B": {},
+	"C": {},
+}
+
+var sheetIdToSheet = map[int]Sheet{}
+
+var sheetPrices = map[string]int64{
+	"S": 5000,
+	"A": 3000,
+	"B": 1000,
+	"C": 0,
+}
+
+func prepareSheets() error {
 	rows, err := db.Query("SELECT * FROM sheets ORDER BY `rank`, num")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var sheet Sheet
 		if err := rows.Scan(&sheet.ID, &sheet.Rank, &sheet.Num, &sheet.Price); err != nil {
-			return nil, err
+			return err
 		}
-		event.Sheets[sheet.Rank].Price = event.Price + sheet.Price
-		event.Total++
-		event.Sheets[sheet.Rank].Total++
-
-		var reservation Reservation
-		err := db.QueryRow("SELECT * FROM reservations WHERE event_id = ? AND sheet_id = ? AND canceled_at IS NULL GROUP BY event_id, sheet_id HAVING reserved_at = MIN(reserved_at)", event.ID, sheet.ID).Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt)
-		if err == nil {
-			sheet.Mine = reservation.UserID == loginUserID
-			sheet.Reserved = true
-			sheet.ReservedAtUnix = reservation.ReservedAt.Unix()
-		} else if err == sql.ErrNoRows {
-			event.Remains++
-			event.Sheets[sheet.Rank].Remains++
-		} else {
-			return nil, err
-		}
-
-		event.Sheets[sheet.Rank].Detail = append(event.Sheets[sheet.Rank].Detail, &sheet)
+		sheets[sheet.Rank][int(sheet.ID)] = int(sheet.Num)
+		sheetIdToSheet[int(sheet.ID)] = sheet
 	}
+
+	return nil
+}
+
+func makeSheetDetails(rank string, reservations map[int]Reservation, loginUserID int64) []*Sheet {
+	var arr []*Sheet
+	for id := range sheets[rank] {
+		s := sheetIdToSheet[id]
+		if r, ok := reservations[int(s.ID)]; ok {
+			s.Mine = r.UserID == loginUserID
+			s.Reserved = true
+			s.ReservedAtUnix = r.ReservedAt.Unix()
+		}
+		arr = append(arr, &s)
+	}
+	return arr
+}
+
+func getEvent(eventID, loginUserID int64) (*Event, error) {
+	var event Event
+	if err := db.QueryRow("SELECT * FROM events WHERE id = ?", eventID).Scan(&event.ID, &event.Title, &event.PublicFg, &event.ClosedFg, &event.Price); err != nil {
+		return nil, err
+	}
+	event.Total = len(sheets["S"]) + len(sheets["A"]) + len(sheets["B"]) + len(sheets["C"])
+	event.Sheets = map[string]*Sheets{
+		"S": {
+			Total:   len(sheets["S"]),
+			Remains: len(sheets["S"]),
+			Price:   event.Price + sheetPrices["S"],
+		},
+		"A": {
+			Total:   len(sheets["A"]),
+			Remains: len(sheets["A"]),
+			Price:   event.Price + sheetPrices["A"],
+		},
+		"B": {
+			Total:   len(sheets["B"]),
+			Remains: len(sheets["B"]),
+			Price:   event.Price + sheetPrices["B"],
+		},
+		"C": {
+			Total:   len(sheets["C"]),
+			Remains: len(sheets["C"]),
+			Price:   event.Price + sheetPrices["C"],
+		},
+	}
+
+	rows, err := db.Query("SELECT * FROM reservations WHERE event_id = ? AND canceled_at IS NULL ORDER BY reserved_at ASC")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	reservations := map[int]Reservation{}
+	for rows.Next() {
+		var reservation Reservation
+		if err := rows.Scan(&reservation.ID, &reservation.EventID, &reservation.SheetID, &reservation.UserID, &reservation.ReservedAt, &reservation.CanceledAt); err != nil {
+			return nil, err
+		}
+
+		event.Remains--
+		rank := sheetIdToSheet[int(reservation.SheetID)].Rank
+		event.Sheets[rank].Remains--
+
+		if _, exists := reservations[int(reservation.SheetID)]; exists {
+			continue
+		}
+		reservations[int(reservation.SheetID)] = reservation
+	}
+
+	event.Sheets["S"].Detail = makeSheetDetails("S", reservations, loginUserID)
+	event.Sheets["A"].Detail = makeSheetDetails("A", reservations, loginUserID)
+	event.Sheets["B"].Detail = makeSheetDetails("B", reservations, loginUserID)
+	event.Sheets["C"].Detail = makeSheetDetails("C", reservations, loginUserID)
 
 	return &event, nil
 }
@@ -320,6 +385,11 @@ func main() {
 
 	var err error
 	db, err = sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err := prepareSheets()
 	if err != nil {
 		log.Fatal(err)
 	}
